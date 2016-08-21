@@ -3,11 +3,12 @@ class RestaurantsController < ApplicationController
 
   # GET /restaurants
   def index
-    @restaurants = Restaurant.all
+    @restaurants = policy_scope(Restaurant)
   end
 
   # GET /restaurants/1
   def show
+    authorize @restaurant
   end
 
   # GET /restaurants/new
@@ -17,11 +18,13 @@ class RestaurantsController < ApplicationController
 
   # GET /restaurants/1/edit
   def edit
+    authorize @restaurant
   end
 
   # POST /restaurants
   def create
-    @restaurant = current_user.restaurants.new(restaurant_params)
+    @restaurant = current_user.restaurants.new(permitted_attributes(@restaurant))
+    authorize @restaurant
 
     if @restaurant.save
       redirect_to @restaurant, notice: 'Restaurant was successfully created.'
@@ -32,7 +35,8 @@ class RestaurantsController < ApplicationController
 
   # PATCH/PUT /restaurants/1
   def update
-    if @restaurant.update(restaurant_params)
+    authorize @restaurant
+    if @restaurant.update(permitted_attributes(@restaurant))
       redirect_to @restaurant, notice: 'Restaurant was successfully updated.'
     else
       render :edit
@@ -41,6 +45,7 @@ class RestaurantsController < ApplicationController
 
   # DELETE /restaurants/1
   def destroy
+    authorize @restaurant
     @restaurant.destroy
     redirect_to restaurants_url, notice: 'Restaurant was successfully destroyed.'
   end
@@ -51,8 +56,4 @@ class RestaurantsController < ApplicationController
       @restaurant = Restaurant.find(params[:id])
     end
 
-    # Only allow a trusted parameter "white list" through.
-    def restaurant_params
-      params.require(:restaurant).permit(:name, :address, :published, :users_id)
-    end
 end
